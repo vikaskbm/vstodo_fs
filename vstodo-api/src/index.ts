@@ -6,7 +6,8 @@ import { __prod__ } from "./constants";
 import { join } from "path";
 import { User } from "./entities/User";
 import { Strategy as GitHubStrategy } from "passport-github";
-import passport from 'passport';
+import passport, { use } from 'passport';
+import jwt from "jsonwebtoken";
 
 // (async () => {
 //     const app = express();
@@ -40,9 +41,17 @@ const main = async () => {
                 clientSecret: process.env.GITHUB_CLIENT_SECRET,
                 callbackURL: "http://localhost:3002/auth/github/callback",
             },
-            (_, __, profile, cb) => {
-                console.log(profile)
-                cb(null, {accessToken: '', refreshToken: ''})
+            async (_, __, profile, cb) => {
+                let user = await User.findOne({where: {githubId: profile.id}});
+                if(user) {
+                    user.name = profile.displayName
+                    await user.save()
+                } else {
+                    user = await User.create({name: profile.displayName}).save()
+                }
+                cb(null, {accessToken: jwt.sign({userId: user.id}, process.env.ACCESS_STRING, {
+                    expiresIn: "1yr",
+                })})
             }
         )
     );
