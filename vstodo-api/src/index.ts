@@ -8,6 +8,7 @@ import { User } from "./entities/User";
 import { Strategy as GitHubStrategy } from "passport-github";
 import passport from 'passport';
 import jwt from "jsonwebtoken";
+import cors from 'cors';
 
 // (async () => {
 //     const app = express();
@@ -18,7 +19,6 @@ const main = async () => {
     const conn = await createConnection({
         type: 'postgres',
         database: 'vstodo',
-        dropSchema: true,
         username: 'vstodo_user',
         password: 'Vikas@029',
         entities: [join(__dirname, './entities/*.*')],
@@ -33,6 +33,7 @@ const main = async () => {
     passport.serializeUser(function(user: any, done) {
         done(null, user.accessToken);
     });
+    app.use(cors({origin: '*'}))
     app.use(passport.initialize());
 
     passport.use(
