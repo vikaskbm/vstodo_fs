@@ -6,7 +6,7 @@ import { __prod__ } from "./constants";
 import { join } from "path";
 import { User } from "./entities/User";
 import { Strategy as GitHubStrategy } from "passport-github";
-import passport, { use } from 'passport';
+import passport from 'passport';
 import jwt from "jsonwebtoken";
 
 // (async () => {
@@ -53,9 +53,14 @@ const main = async () => {
                         githubId: profile.id
                     }).save()
                 }
-                cb(null, {accessToken: jwt.sign({userId: user.id}, process.env.ACCESS_STRING, {
-                    expiresIn: "1yr",
-                })})
+                cb(null, {accessToken: jwt.sign(
+                    {userId: user.id}, 
+                    process.env.ACCESS_TOKEN_SECRET, 
+                    {
+                        expiresIn: "1yr",
+                    }
+                ),
+            });
             }
         )
     );
@@ -72,6 +77,41 @@ const main = async () => {
     );
 
     // APIs
+
+    app.get(
+        '/me', 
+        async (req: any, res) => {
+            // Bearer afdgasdsag4a65da
+            const authHeader = req.headers.authorization
+            if(!authHeader) {
+                res.send({user: null})
+                return;
+            }
+            const token = authHeader.split(" ")[1];
+            if(!token) {
+                res.send({user: null})
+                return;
+            }
+            
+            let userId = '';
+            try {
+                const payload: any = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+                userId = payload.userId
+            } catch(err) {
+                res.send({ user: null})
+                return
+            }
+            if(!userId) {
+                res.send({ user: null})
+                return;
+            }
+            const user = await User.findOne(userId);
+
+            res.send({ user: user})
+
+        }
+    );
+
     app.get('/', (_req, res) => {
         res.send({
             name: "hello",
