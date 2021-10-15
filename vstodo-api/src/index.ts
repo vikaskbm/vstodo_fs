@@ -18,6 +18,7 @@ const main = async () => {
     const conn = await createConnection({
         type: 'postgres',
         database: 'vstodo',
+        dropSchema: true,
         username: 'vstodo_user',
         password: 'Vikas@029',
         entities: [join(__dirname, './entities/*.*')],
@@ -47,7 +48,10 @@ const main = async () => {
                     user.name = profile.displayName
                     await user.save()
                 } else {
-                    user = await User.create({name: profile.displayName}).save()
+                    user = await User.create({
+                        name: profile.displayName, 
+                        githubId: profile.id
+                    }).save()
                 }
                 cb(null, {accessToken: jwt.sign({userId: user.id}, process.env.ACCESS_STRING, {
                     expiresIn: "1yr",
@@ -61,9 +65,9 @@ const main = async () => {
     app.get(
         '/auth/github/callback', 
         passport.authenticate('github', {session: false}),
-        function(_req, res) {
+        function(req: any, res) {
             // Successful authentication, redirect home.
-            res.send('you logged in correctly');
+            res.redirect(`http://localhost:54321/auth/${req.user.accessToken}`)
         }
     );
 
