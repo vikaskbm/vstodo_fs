@@ -7,7 +7,7 @@ export class Todo extends BaseEntity {
     id: number;
 
     @Column('text')
-    name: string
+    text: string
 
     @Column('boolean', {unique: false})
     completed: string
