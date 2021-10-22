@@ -89,12 +89,23 @@ const main = async () => {
 
         res.send({ todos })
     })
+    
     app.post("/todo", isAuth, async (req: any, res) => {
-        // {text}
         const todo = await Todo.create({
             text: req.body.text,
             creatorId: req.userId, 
         }).save();
+        res.send({todo})
+    })
+    
+    app.put("/todo", isAuth, async (req: any, res) => {
+        const todo = await Todo.findOne(req.body.id)
+        if(!todo) {
+            res.send({todo: null})
+            return
+        }
+        todo.completed = !todo.completed;
+        await todo.save()
         res.send({todo})
     })
 
