@@ -9,7 +9,7 @@ export class Todo extends BaseEntity {
     @Column('text')
     text: string
 
-    @Column('boolean', {unique: false})
+    @Column('boolean', {default: false})
     completed: string
 
     @Column()
